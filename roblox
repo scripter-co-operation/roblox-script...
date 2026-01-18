@@ -1,0 +1,134 @@
+print(hi)-- Force script name
+script.Name = "PKL Lagger!"
+
+-- LocalScript
+
+local P=game:GetService("Players")
+local R=game:GetService("RunService")
+local U=game:GetService("UserInputService")
+local p=P.LocalPlayer
+
+-- UI
+local g=Instance.new("ScreenGui",p.PlayerGui)
+g.ResetOnSpawn=false
+
+local f=Instance.new("Frame",g)
+f.Size=UDim2.fromScale(.28,.28)
+f.Position=UDim2.fromScale(.36,.36)
+f.BackgroundColor3=Color3.fromRGB(20,20,20)
+f.BorderSizePixel=0
+f.Active=true
+Instance.new("UICorner",f).CornerRadius=UDim.new(0,12)
+
+local title=Instance.new("TextLabel",f)
+title.Size=UDim2.fromScale(1,.18)
+title.BackgroundTransparency=1
+title.Text="LAGGER!"
+title.TextScaled=true
+title.TextColor3=Color3.new(1,1,1)
+title.Font=Enum.Font.SourceSansBold
+title.Active=true
+
+-- Drag
+local d,ds,sp=false
+title.InputBegan:Connect(function(i)
+	if i.UserInputType==Enum.UserInputType.MouseButton1 then
+		d=true ds=i.Position sp=f.Position
+	end
+end)
+title.InputEnded:Connect(function(i)
+	if i.UserInputType==Enum.UserInputType.MouseButton1 then d=false end
+end)
+U.InputChanged:Connect(function(i)
+	if d and i.UserInputType==Enum.UserInputType.MouseMovement then
+		local x=i.Position-ds
+		f.Position=UDim2.new(sp.X.Scale,sp.X.Offset+x.X,sp.Y.Scale,sp.Y.Offset+x.Y)
+	end
+end)
+
+-- Button factory
+local function B(t,y,c)
+	local b=Instance.new("TextButton",f)
+	b.Size=UDim2.fromScale(.8,.18)
+	b.Position=UDim2.fromScale(.1,y)
+	b.Text=t
+	b.TextScaled=true
+	b.Font=Enum.Font.SourceSansBold
+	b.BackgroundColor3=c
+	b.TextColor3=Color3.new(1,1,1)
+	Instance.new("UICorner",b).CornerRadius=UDim.new(0,8)
+	return b
+end
+
+local lag=B("LAG",.25,Color3.fromRGB(80,140,80))
+local ultra=B("ULTRA",.47,Color3.fromRGB(180,120,60))
+local nuke=B("NUKE",.69,Color3.fromRGB(140,0,0))
+
+-- State
+local mode="OFF"
+local ft=0
+local load=0
+local lf=0
+
+-- 🟢 NORMAL LAG → 5 FPS
+lag.MouseButton1Click:Connect(function()
+	mode="LAG"
+	ft=0.2
+	load=300000
+end)
+
+-- 🔥 ULTRA → ~1 FPS
+ultra.MouseButton1Click:Connect(function()
+	mode="ULTRA"
+	ft=1
+	load=1200000
+
+	local s=os.clock()
+	while os.clock()-s<1 do
+		for i=1,600000 do
+			math.sqrt(i*math.random())
+		end
+	end
+end)
+
+-- 💣 NUKE → EXTREME CLIENT LAG
+nuke.MouseButton1Click:Connect(function()
+	mode="NUKE"
+	ft=10
+	load=2500000
+end)
+
+-- Render lag loop
+R.RenderStepped:Connect(function()
+	if mode=="OFF" then return end
+
+	if mode=="NUKE" then
+		for i=1,load do
+			math.sqrt(i*math.random())
+		end
+		task.wait(5)
+		return
+	end
+
+	local n=os.clock()
+	if n-lf<ft then task.wait(ft-(n-lf)) end
+	lf=os.clock()
+
+	for i=1,load do
+		math.sqrt(i*math.random())
+	end
+end)
+
+-- Background task spam
+task.spawn(function()
+	while true do
+		if mode~="OFF" then
+			for i=1,(mode=="NUKE" and 200 or mode=="ULTRA" and 100 or 40) do
+				task.spawn(function()
+					for j=1,40000 do math.sin(j) end
+				end)
+			end
+		end
+		task.wait(mode=="NUKE" and .02 or .1)
+	end
+end)
